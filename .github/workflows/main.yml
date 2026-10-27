@@ -1,0 +1,31 @@
+
+name: Hamming74 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-and-synthesis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog yosys
+
+      - name: Run testbench
+        run: |
+          iverilog -g2012 -o sim hamming74_encoder.v tb_hamming74.v
+          vvp sim
+
+      - name: Run Yosys synthesis
+        run: |
+          yosys -p "read_verilog hamming74_encoder.v; hierarchy -top hamming74_encoder; proc; opt; stat"
